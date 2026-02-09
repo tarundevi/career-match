@@ -23,6 +23,7 @@
                         {% endif %}
                         {% if is_seeker %}
                             <a class="nav-link" href="{% url 'seekers:profile_detail' %}">My Profile</a>
+                            <a class="nav-link" href="{% url 'seekers:job_search' %}">Search Jobs</a>
                         {% endif %}
                         <span class="nav-link text-light">{{ user.username }}</span>
                         <a class="nav-link" href="{% url 'logout' %}">Logout</a>
