@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 from .models import SeekerProfile
-from .forms import SeekerProfileForm
+from .forms import SeekerProfileForm, JobSearchForm
+from recruiters.models import JobPosting
 
 
 @login_required
@@ -38,3 +39,39 @@ def profile_update(request):
     else:
         form = SeekerProfileForm(instance=profile)
     return render(request, 'seekers/profile_form.html', {'form': form, 'profile': profile})
+
+
+def job_search(request):
+    form = JobSearchForm(request.GET or None)
+    jobs = JobPosting.objects.filter(is_active=True).order_by('-created_at')
+
+    if form.is_valid():
+        title = form.cleaned_data.get('title')
+        skills = form.cleaned_data.get('skills')
+        location = form.cleaned_data.get('location')
+        salary_min = form.cleaned_data.get('salary_min')
+        salary_max = form.cleaned_data.get('salary_max')
+        work_location = form.cleaned_data.get('work_location')
+        visa_sponsorship = form.cleaned_data.get('visa_sponsorship')
+
+        if title:
+            jobs = jobs.filter(title__icontains=title)
+        if skills:
+            jobs = jobs.filter(skills__icontains=skills)
+        if location:
+            jobs = jobs.filter(location__icontains=location)
+        if salary_min:
+            jobs = jobs.filter(salary_max__gte=salary_min)
+        if salary_max:
+            jobs = jobs.filter(salary_min__lte=salary_max)
+        if work_location:
+            jobs = jobs.filter(work_location=work_location)
+        if visa_sponsorship:
+            jobs = jobs.filter(visa_sponsorship=True)
+
+    return render(request, 'seekers/job_search.html', {'form': form, 'jobs': jobs})
+
+
+def job_detail(request, pk):
+    job = get_object_or_404(JobPosting, pk=pk, is_active=True)
+    return render(request, 'seekers/job_detail.html', {'job': job})

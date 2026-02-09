@@ -1,0 +1,59 @@
+{% extends 'seekers/base_seekers.html' %}
+
+{% block title %}{{ job.title }} - CareerMatch{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'seekers:job_search' %}" class="text-decoration-none">&larr; Back to Search</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="mb-0">{{ job.title }}</h2>
+        <p class="text-muted mb-0">{{ job.recruiter.company_name }}</p>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong>Location:</strong> {{ job.location }}</p>
+                <p><strong>Type:</strong> {{ job.get_job_type_display }}</p>
+                <p><strong>Work Location:</strong> {{ job.get_work_location_display }}</p>
+                <p><strong>Experience:</strong> {{ job.get_experience_level_display }}</p>
+            </div>
+            <div class="col-md-6">
+                {% if job.salary_min or job.salary_max %}
+                    <p><strong>Salary:</strong>
+                        {% if job.salary_min %}${{ job.salary_min }}{% endif %}
+                        {% if job.salary_min and job.salary_max %} - {% endif %}
+                        {% if job.salary_max %}${{ job.salary_max }}{% endif %}
+                    </p>
+                {% endif %}
+                <p><strong>Visa Sponsorship:</strong>
+                    {% if job.visa_sponsorship %}
+                        <span class="badge bg-success">Yes</span>
+                    {% else %}
+                        <span class="badge bg-secondary">No</span>
+                    {% endif %}
+                </p>
+                {% if job.application_deadline %}
+                    <p><strong>Deadline:</strong> {{ job.application_deadline }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if job.skills %}
+            <h4>Skills</h4>
+            <p>{{ job.skills }}</p>
+        {% endif %}
+
+        <h4>Description</h4>
+        <p>{{ job.description|linebreaks }}</p>
+
+        <h4>Requirements</h4>
+        <p>{{ job.requirements|linebreaks }}</p>
+    </div>
+    <div class="card-footer text-muted">
+        Posted {{ job.created_at|date:"F j, Y" }}
+    </div>
+</div>
+{% endblock %}

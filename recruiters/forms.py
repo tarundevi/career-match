@@ -6,9 +6,9 @@ class JobPostingForm(forms.ModelForm):
     class Meta:
         model = JobPosting
         fields = [
-            'title', 'description', 'requirements', 'location',
-            'job_type', 'experience_level',
-            'salary_min', 'salary_max',
+            'title', 'description', 'requirements', 'skills',
+            'location', 'job_type', 'work_location', 'experience_level',
+            'salary_min', 'salary_max', 'visa_sponsorship',
             'application_deadline', 'is_active'
         ]
         widgets = {

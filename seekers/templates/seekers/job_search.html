@@ -1,0 +1,104 @@
+{% extends 'seekers/base_seekers.html' %}
+
+{% block title %}Search Jobs - CareerMatch{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Search Jobs</h1>
+
+<div class="row">
+    <!-- Filter Sidebar -->
+    <div class="col-md-4 col-lg-3 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'seekers:job_search' %}">
+                    <div class="mb-3">
+                        <label for="id_title" class="form-label">Job Title</label>
+                        {{ form.title }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_skills" class="form-label">Skills</label>
+                        {{ form.skills }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_location" class="form-label">Location</label>
+                        {{ form.location }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_work_location" class="form-label">Remote / On-Site</label>
+                        {{ form.work_location }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_salary_min" class="form-label">Min Salary</label>
+                        {{ form.salary_min }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_salary_max" class="form-label">Max Salary</label>
+                        {{ form.salary_max }}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ form.visa_sponsorship }}
+                        <label for="id_visa_sponsorship" class="form-check-label">Visa Sponsorship</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                    <a href="{% url 'seekers:job_search' %}" class="btn btn-outline-secondary w-100 mt-2">Clear Filters</a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="col-md-8 col-lg-9">
+        <p class="text-muted mb-3">{{ jobs|length }} job{{ jobs|length|pluralize }} found</p>
+
+        {% if jobs %}
+            <div class="row">
+                {% for job in jobs %}
+                    <div class="col-lg-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="{% url 'seekers:job_detail' job.pk %}" class="text-decoration-none">{{ job.title }}</a>
+                                </h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ job.recruiter.company_name }}</h6>
+                                <p class="card-text">
+                                    <small class="text-muted">{{ job.location }}</small>
+                                </p>
+                                <div class="mb-2">
+                                    <span class="badge bg-secondary">{{ job.get_job_type_display }}</span>
+                                    <span class="badge bg-info">{{ job.get_work_location_display }}</span>
+                                    {% if job.visa_sponsorship %}
+                                        <span class="badge bg-success">Visa Sponsorship</span>
+                                    {% endif %}
+                                </div>
+                                {% if job.salary_min or job.salary_max %}
+                                    <p class="card-text">
+                                        <strong>
+                                            {% if job.salary_min %}${{ job.salary_min }}{% endif %}
+                                            {% if job.salary_min and job.salary_max %} - {% endif %}
+                                            {% if job.salary_max %}${{ job.salary_max }}{% endif %}
+                                        </strong>
+                                    </p>
+                                {% endif %}
+                                {% if job.skills %}
+                                    <p class="card-text"><small class="text-muted">{{ job.skills }}</small></p>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="{% url 'seekers:job_detail' job.pk %}" class="btn btn-sm btn-outline-primary">View Details</a>
+                                <small class="text-muted float-end mt-1">{{ job.created_at|date:"M j, Y" }}</small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                No jobs found matching your criteria. Try adjusting your filters.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
