@@ -1,0 +1,36 @@
+{% extends 'recruiters/base_recruiters.html' %}
+
+{% block title %}My Job Postings{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Job Postings</h1>
+    <a href="{% url 'recruiters:job_create' %}" class="btn btn-primary">Post New Job</a>
+</div>
+
+{% if jobs %}
+    <div class="row">
+        {% for job in jobs %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ job.title }}</h5>
+                        <p class="card-text text-muted">{{ job.location }}</p>
+                        <span class="badge bg-secondary">{{ job.get_job_type_display }}</span>
+                        <span class="badge bg-info">{{ job.get_experience_level_display }}</span>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{% url 'recruiters:job_detail' job.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                        <a href="{% url 'recruiters:job_update' job.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <a href="{% url 'recruiters:job_delete' job.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        You haven't posted any jobs yet. <a href="{% url 'recruiters:job_create' %}">Create your first job posting!</a>
+    </div>
+{% endif %}
+{% endblock %}
