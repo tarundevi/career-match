@@ -1,0 +1,33 @@
+{% extends 'seekers/base_seekers.html' %}
+
+{% block title %}{% if profile %}Edit Profile{% else %}Create Profile{% endif %}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="mb-0">{% if profile %}Edit Profile{% else %}Create Your Profile{% endif %}</h2>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="text-danger">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary">
+                {% if profile %}Update Profile{% else %}Create Profile{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

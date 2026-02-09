@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}CareerMatch - Home{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="display-4 mb-3">Welcome to CareerMatch</h1>
+    <p class="lead text-muted mb-5">Connecting talented job seekers with top recruiters.</p>
+
+    {% if user.is_authenticated %}
+        {% if is_recruiter %}
+            <a href="{% url 'recruiters:job_list' %}" class="btn btn-primary btn-lg">Go to My Jobs</a>
+        {% elif is_seeker %}
+            <a href="{% url 'seekers:profile_detail' %}" class="btn btn-primary btn-lg">Go to My Profile</a>
+        {% endif %}
+    {% else %}
+        <div class="row justify-content-center g-4">
+            <div class="col-md-5">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <h3 class="card-title">Job Seekers</h3>
+                        <p class="card-text text-muted">Create your profile, showcase your skills, and get discovered by recruiters.</p>
+                        <a href="{% url 'signup' %}?role=seeker" class="btn btn-primary">Sign Up as Seeker</a>
+                        <p class="mt-3 mb-0"><small>Already have an account? <a href="{% url 'login' %}">Login</a></small></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <h3 class="card-title">Recruiters</h3>
+                        <p class="card-text text-muted">Post jobs, find candidates, and build your team with the right talent.</p>
+                        <a href="{% url 'signup' %}?role=recruiter" class="btn btn-outline-primary">Sign Up as Recruiter</a>
+                        <p class="mt-3 mb-0"><small>Already have an account? <a href="{% url 'login' %}">Login</a></small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
