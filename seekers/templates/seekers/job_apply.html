@@ -1,0 +1,26 @@
+{% extends 'seekers/base_seekers.html' %}
+{% block title %}Apply - {{ job.title }}{% endblock %}
+{% block content %}
+
+
+<div class="mb-3">
+    <a href="{% url 'seekers:job_detail' job.pk %}" class="text-decoration-none">&larr; Back to Job</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="mb-0">Apply to {{ job.title }}</h2>
+        <p class="text-muted mb-0">{{ job.recruiter.company_name }}</p>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="id_note" class="form-label">Personalized Note</label>
+                {{ form.note }}
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Application</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

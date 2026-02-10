@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
-from .models import SeekerProfile
-from .forms import SeekerProfileForm, JobSearchForm
+from .models import SeekerProfile, Application
+from .forms import SeekerProfileForm, JobSearchForm, ApplicationForm
 from recruiters.models import JobPosting
 
 
@@ -75,3 +76,27 @@ def job_search(request):
 def job_detail(request, pk):
     job = get_object_or_404(JobPosting, pk=pk, is_active=True)
     return render(request, 'seekers/job_detail.html', {'job': job})
+
+
+@login_required
+def job_apply(request, pk):
+    job = get_object_or_404(JobPosting, pk=pk, is_active=True)
+    seeker = get_object_or_404(SeekerProfile, user=request.user)
+
+    if Application.objects.filter(seeker=seeker, job=job).exists():
+        messages.info(request, 'You have already applied to this job!')
+        return redirect('seekers:job_detail', pk=pk)
+
+    if request.method == 'POST':
+        form = ApplicationForm(request.POST)
+        if form.is_valid():
+            application = form.save(commit=False)
+            application.seeker = seeker
+            application.job = job
+            application.save()
+            messages.success(request, 'Your application has been submitted!')
+            return redirect('seekers:job_detail', pk=pk)
+    else:
+        form = ApplicationForm()
+
+    return render(request, 'seekers/job_apply.html', {'form': form, 'job': job})

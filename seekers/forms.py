@@ -1,5 +1,5 @@
 from django import forms
-from .models import SeekerProfile
+from .models import SeekerProfile, Application
 from recruiters.models import JobPosting
 
 
@@ -54,3 +54,12 @@ class JobSearchForm(forms.Form):
         required=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
     )
+
+
+class ApplicationForm(forms.ModelForm):
+    class Meta:
+        model = Application
+        fields = ['note']
+        widgets = {
+            'note': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Add a personalized note to your application'}),
+        }

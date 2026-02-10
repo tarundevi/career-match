@@ -16,3 +16,13 @@ class SeekerProfile(models.Model):
 
     def __str__(self):
         return f"{self.headline} ({self.user.username})"
+
+
+class Application(models.Model):
+    seeker = models.ForeignKey(SeekerProfile, on_delete=models.CASCADE, related_name='applications')
+    job = models.ForeignKey('recruiters.JobPosting', on_delete=models.CASCADE, related_name='applications')
+    note = models.TextField(blank=True)
+    applied_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.seeker.user.username} -> {self.job.title}"
