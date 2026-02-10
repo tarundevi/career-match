@@ -1,0 +1,141 @@
+{% extends 'seekers/base_seekers.html' %}
+
+{% block title %}Job Map - CareerMatch{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Job Map</h1>
+
+<div class="row">
+    <div class="col-md-4 col-lg-3">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Location Filter</h5>
+            </div>
+            <div class="card-body">
+                <button id="getLocationBtn" class="btn btn-primary w-100 mb-3">
+                    <i class="fas fa-location-arrow me-2"></i>Use My Location
+                </button>
+                
+                <div id="locationStatus" class="mb-3"></div>
+                
+                <div id="distanceControls" style="display: none;">
+                    <label for="distanceSlider" class="form-label">
+                        Distance: <span id="distanceValue">50</span> miles
+                    </label>
+                    <input type="range" class="form-range" id="distanceSlider" 
+                           min="1" max="200" value="50" step="1">
+                    
+                    <div class="mt-3">
+                        <button id="applyDistanceFilter" class="btn btn-success w-100">
+                            Apply Distance Filter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    {{ jobs|length }} job{{ jobs|length|pluralize }} shown
+                    {% if user_lat and user_lon and max_distance %}
+                        <br><small>within {{ max_distance }} miles of your location</small>
+                    {% endif %}
+                </p>
+                <a href="{% url 'seekers:job_search' %}" class="btn btn-outline-secondary w-100">Back to Search</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8 col-lg-9">
+        <div class="card">
+            <div class="card-body p-0">
+                <div id="mapContainer" style="height: 600px;">
+                    {{ map|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let userLat = {{ user_lat|default:"null" }};
+let userLon = {{ user_lon|default:"null" }};
+let currentDistance = {{ max_distance|default:"50" }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const getLocationBtn = document.getElementById('getLocationBtn');
+    const locationStatus = document.getElementById('locationStatus');
+    const distanceControls = document.getElementById('distanceControls');
+    const distanceSlider = document.getElementById('distanceSlider');
+    const distanceValue = document.getElementById('distanceValue');
+    const applyDistanceFilter = document.getElementById('applyDistanceFilter');
+    
+    distanceSlider.addEventListener('input', function() {
+        distanceValue.textContent = this.value;
+        currentDistance = parseInt(this.value);
+    });
+    
+    if (currentDistance) {
+        distanceSlider.value = currentDistance;
+        distanceValue.textContent = currentDistance;
+    }
+    
+    if (userLat && userLon) {
+        locationStatus.innerHTML = '<div class="alert alert-success">Location set!</div>';
+        distanceControls.style.display = 'block';
+        getLocationBtn.textContent = 'Update My Location';
+    }
+    
+    getLocationBtn.addEventListener('click', function() {
+        if (navigator.geolocation) {
+            getLocationBtn.disabled = true;
+            getLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Getting Location...';
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    userLat = position.coords.latitude;
+                    userLon = position.coords.longitude;
+                    
+                    locationStatus.innerHTML = '<div class="alert alert-success">Location obtained!</div>';
+                    distanceControls.style.display = 'block';
+                    getLocationBtn.disabled = false;
+                    getLocationBtn.innerHTML = '<i class="fas fa-location-arrow me-2"></i>Update My Location';
+                },
+                function(error) {
+                    let message = 'Unable to get location.';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            message = 'Location access denied by user.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            message = 'Location information unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            message = 'Location request timed out.';
+                            break;
+                    }
+                    locationStatus.innerHTML = '<div class="alert alert-danger">' + message + '</div>';
+                    getLocationBtn.disabled = false;
+                    getLocationBtn.innerHTML = '<i class="fas fa-location-arrow me-2"></i>Try Again';
+                }
+            );
+        } else {
+            locationStatus.innerHTML = '<div class="alert alert-danger">Geolocation is not supported by this browser.</div>';
+        }
+    });
+    
+    applyDistanceFilter.addEventListener('click', function() {
+        if (userLat && userLon) {
+            const currentUrl = new URL(window.location);
+            currentUrl.searchParams.set('user_lat', userLat);
+            currentUrl.searchParams.set('user_lon', userLon);
+            currentUrl.searchParams.set('max_distance', currentDistance);
+            
+            window.location.href = currentUrl.toString();
+        }
+    });
+});
+</script>
+
+{% endblock %}
