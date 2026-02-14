@@ -9,10 +9,13 @@ class JobPostingForm(forms.ModelForm):
             'title', 'description', 'requirements', 'skills',
             'location', 'job_type', 'work_location', 'experience_level',
             'salary_min', 'salary_max', 'visa_sponsorship',
-            'application_deadline', 'is_active'
+            'application_deadline', 'is_active',
+            'latitude', 'longitude',
         ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 5}),
             'requirements': forms.Textarea(attrs={'rows': 5}),
             'application_deadline': forms.DateInput(attrs={'type': 'date'}),
+            'latitude': forms.HiddenInput(),
+            'longitude': forms.HiddenInput(),
         }

@@ -3,6 +3,8 @@
 {% block title %}{% if job %}Edit Job{% else %}Create Job{% endif %}{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
 <div class="mb-3">
     <a href="{% url 'recruiters:job_list' %}" class="text-decoration-none">&larr; Back to Jobs</a>
 </div>
@@ -16,13 +18,30 @@
             {% csrf_token %}
 
             {% for field in form %}
-                <div class="mb-3">
-                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {% if field.name == "latitude" or field.name == "longitude" %}
                     {{ field }}
-                    {% if field.errors %}
-                        <div class="text-danger">{{ field.errors }}</div>
+                {% else %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% if field.name == "location" %}
+                        <div class="mb-3">
+                            <label class="form-label">Pin Office Location on Map</label>
+                            <div class="d-flex gap-2 mb-2">
+                                <button type="button" id="pin-on-map-btn" class="btn btn-outline-secondary btn-sm">
+                                    Pin on Map
+                                </button>
+                                <span id="map-status" class="text-muted align-self-center small"></span>
+                            </div>
+                            <div id="location-map" style="height: 350px; border: 1px solid #dee2e6; border-radius: 0.375rem;"></div>
+                            <small class="text-muted">Click "Pin on Map" to geocode the location, or click directly on the map to place/move the pin. The marker is draggable.</small>
+                        </div>
                     {% endif %}
-                </div>
+                {% endif %}
             {% endfor %}
 
             <button type="submit" class="btn btn-primary">
@@ -31,4 +50,78 @@
         </form>
     </div>
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+    const initLat = {{ job.latitude|default:"39.5" }};
+    const initLng = {{ job.longitude|default:"-98.35" }};
+    const hasCoords = {% if job and job.latitude and job.longitude %}true{% else %}false{% endif %};
+
+    const map = L.map('location-map').setView([initLat, initLng], hasCoords ? 13 : 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    let marker = null;
+    const latInput = document.getElementById('id_latitude');
+    const lngInput = document.getElementById('id_longitude');
+    const statusEl = document.getElementById('map-status');
+
+    function placeMarker(lat, lng) {
+        if (marker) {
+            marker.setLatLng([lat, lng]);
+        } else {
+            marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+            marker.on('dragend', function(e) {
+                const pos = e.target.getLatLng();
+                latInput.value = pos.lat;
+                lngInput.value = pos.lng;
+            });
+        }
+        latInput.value = lat;
+        lngInput.value = lng;
+    }
+
+    // Pre-populate marker if editing a job with saved coordinates
+    if (hasCoords) {
+        placeMarker(initLat, initLng);
+    }
+
+    // Click on map to place/move pin
+    map.on('click', function(e) {
+        placeMarker(e.latlng.lat, e.latlng.lng);
+        map.setView(e.latlng, Math.max(map.getZoom(), 13));
+        statusEl.textContent = 'Pin placed.';
+    });
+
+    // "Pin on Map" button — geocode the location text
+    document.getElementById('pin-on-map-btn').addEventListener('click', function() {
+        const locationField = document.getElementById('id_location');
+        const query = locationField ? locationField.value.trim() : '';
+        if (!query) {
+            statusEl.textContent = 'Please enter a location first.';
+            return;
+        }
+        statusEl.textContent = 'Searching...';
+        fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query))
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    placeMarker(lat, lng);
+                    map.setView([lat, lng], 13);
+                    statusEl.textContent = 'Location found: ' + data[0].display_name.substring(0, 60);
+                } else {
+                    statusEl.textContent = 'Location not found. Try a more specific address.';
+                }
+            })
+            .catch(function() {
+                statusEl.textContent = 'Geocoding failed. Please try again.';
+            });
+    });
+})();
+</script>
 {% endblock %}

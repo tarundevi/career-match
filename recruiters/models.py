@@ -43,6 +43,8 @@ class JobPosting(models.Model):
     work_location = models.CharField(max_length=20, choices=WORK_LOCATION_CHOICES, default='on_site')
     salary_min = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     salary_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     visa_sponsorship = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     application_deadline = models.DateField(null=True, blank=True)

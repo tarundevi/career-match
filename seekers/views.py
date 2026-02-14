@@ -102,7 +102,16 @@ def job_search(request):
 
 def job_detail(request, pk):
     job = get_object_or_404(JobPosting, pk=pk, is_active=True)
-    return render(request, 'seekers/job_detail.html', {'job': job})
+    map_html = None
+    if job.latitude and job.longitude:
+        m = folium.Map(location=[job.latitude, job.longitude], zoom_start=13)
+        folium.Marker(
+            [job.latitude, job.longitude],
+            popup=f"<strong>{job.title}</strong><br>{job.recruiter.company_name}<br>{job.location}",
+            icon=folium.Icon(color='blue', icon='briefcase', prefix='fa'),
+        ).add_to(m)
+        map_html = m._repr_html_()
+    return render(request, 'seekers/job_detail.html', {'job': job, 'map': map_html})
 
 
 @login_required
@@ -171,18 +180,20 @@ def job_map(request):
     jobs_with_coords = []
 
     for job in jobs:
-        if not job.location:
+        if job.latitude and job.longitude:
+            lat = job.latitude
+            lon = job.longitude
+        elif job.location:
+            try:
+                loc = geocode(job.location)
+            except Exception:
+                loc = None
+            if not loc:
+                continue
+            lat = loc.latitude
+            lon = loc.longitude
+        else:
             continue
-        try:
-            loc = geocode(job.location)
-        except Exception:
-            loc = None
-
-        if not loc:
-            continue
-
-        lat = loc.latitude
-        lon = loc.longitude
         
         if user_lat and user_lon and max_distance:
             distance = calculate_distance(user_lat, user_lon, lat, lon)

@@ -41,6 +41,13 @@
             </div>
         </div>
 
+        {% if map %}
+            <h4>Office Location</h4>
+            <div class="mb-4">
+                {{ map|safe }}
+            </div>
+        {% endif %}
+
         {% if job.skills %}
             <h4>Skills</h4>
             <p>{{ job.skills }}</p>
